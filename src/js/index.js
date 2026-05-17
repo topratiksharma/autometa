@@ -4,7 +4,7 @@ import { Renderer } from "./renderer.js";
 import { HUD } from "./hud.js";
 import { Simulation } from "./simulation.js";
 
-const library = await PatternLibrary.load("./src/lexicon.json");
+const library = PatternLibrary.load();
 
 const renderer = new Renderer("life-canvas", {
   width: 480,
