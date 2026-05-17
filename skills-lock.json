@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "ts-code-reviewer": {
+      "source": "TypeFox/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ts-code-reviewer/SKILL.md",
+      "computedHash": "e4e1c319edfe43dd4df4edfebf017c9381d43cec341ad64d7b85bb183c4399b3"
+    }
+  }
+}
