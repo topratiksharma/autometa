@@ -12,13 +12,20 @@ export class Simulation {
   #speed;
 
   constructor(renderer, hud, { initialSpeed = 3 } = {}) {
+    if (initialSpeed < 1 || initialSpeed > 5) {
+      throw new RangeError(`initialSpeed must be 1-5, got ${initialSpeed}`);
+    }
     this.#renderer = renderer;
     this.#hud = hud;
     this.#speed = initialSpeed;
   }
 
-  get isRunning() { return this.#running; }
-  get generation() { return this.#generation; }
+  get isRunning() {
+    return this.#running;
+  }
+  get generation() {
+    return this.#generation;
+  }
 
   load(world) {
     this.#world = world;
@@ -70,12 +77,15 @@ export class Simulation {
 
   #startLoop() {
     clearInterval(this.#timer);
-    this.#timer = setInterval(() => {
-      this.#world = next(this.#world);
-      this.#generation++;
-      const alive = this.#renderer.render(this.#world);
-      this.#hud.setGeneration(this.#generation);
-      this.#hud.setAlive(alive);
-    }, SPEED_LEVELS[this.#speed - 1]);
+    this.#timer = setInterval(
+      () => {
+        this.#world = next(this.#world);
+        this.#generation++;
+        const alive = this.#renderer.render(this.#world);
+        this.#hud.setGeneration(this.#generation);
+        this.#hud.setAlive(alive);
+      },
+      SPEED_LEVELS[this.#speed - 1],
+    );
   }
 }

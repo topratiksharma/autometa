@@ -1,17 +1,12 @@
 // (world: boolean[][]) => boolean[][]
 export const next = (world) => {
-  const nextWorld = JSON.parse(JSON.stringify(world));
+  const nextWorld = structuredClone(world);
   const rows = nextWorld.length;
   const columns = nextWorld[0].length;
   // Change each cell
   for (let rowIdx = 0; rowIdx < rows; rowIdx++) {
     for (let colIdx = 0; colIdx < columns; colIdx++) {
-      const toggle = census(colIdx, rowIdx, rows, columns, world);
-      if (toggle) {
-        nextWorld[rowIdx][colIdx] = true;
-      } else {
-        nextWorld[rowIdx][colIdx] = false;
-      }
+      nextWorld[rowIdx][colIdx] = census(colIdx, rowIdx, rows, columns, world);
     }
   }
   return nextWorld;
@@ -29,25 +24,8 @@ export const next = (world) => {
  * @returns {boolean}
  */
 function census(x, y, rows, columns, data) {
-  let c = getNeighbors(x, y, rows, columns, data);
-  let underPopulated = false;
-  let healthy = false;
-  let overPopulated = false;
-  let born = false;
-  if (isLive(x, y, data)) {
-    underPopulated = isUnderPopulated(c);
-    healthy = isHealthy(c);
-    overPopulated = isOverPopulated(c);
-  } else {
-    born = isBorn(c);
-  }
-  if (underPopulated || overPopulated) {
-    return false;
-  }
-  if (healthy || born) {
-    return true;
-  }
-  return false;
+  const c = getNeighbors(x, y, rows, columns, data);
+  return isLive(x, y, data) ? isHealthy(c) : isBorn(c);
 }
 
 /**
@@ -60,19 +38,20 @@ function census(x, y, rows, columns, data) {
  * @returns {boolean}
  */
 function getNeighbors(x, y, rows, columns, data) {
-  let n = y != rows - 1; // has northern neighbors
-  let e = x != 0; // has eastern neighbors
-  let s = y != 0; // has southern neighbors
-  let w = x != columns - 1; // has western neighbors
+  // Row 0 is at the top of the canvas; y increases downward.
+  let s = y != rows - 1;    // can look south (y + 1 exists)
+  let w = x != 0;            // can look west  (x - 1 exists)
+  let n = y != 0;            // can look north (y - 1 exists)
+  let e = x != columns - 1; // can look east  (x + 1 exists)
   let count = 0;
-  if (n && isLive(x, y + 1, data)) count++;
-  if (n && e && isLive(x - 1, y + 1, data)) count++;
-  if (e && isLive(x - 1, y, data)) count++;
-  if (s && e && isLive(x - 1, y - 1, data)) count++;
-  if (s && isLive(x, y - 1, data)) count++;
-  if (s && w && isLive(x + 1, y - 1, data)) count++;
-  if (w && isLive(x + 1, y, data)) count++;
-  if (n && w && isLive(x + 1, y + 1, data)) count++;
+  if (s && isLive(x, y + 1, data)) count++;
+  if (s && w && isLive(x - 1, y + 1, data)) count++;
+  if (w && isLive(x - 1, y, data)) count++;
+  if (n && w && isLive(x - 1, y - 1, data)) count++;
+  if (n && isLive(x, y - 1, data)) count++;
+  if (n && e && isLive(x + 1, y - 1, data)) count++;
+  if (e && isLive(x + 1, y, data)) count++;
+  if (s && e && isLive(x + 1, y + 1, data)) count++;
   return count;
 }
 
@@ -134,7 +113,7 @@ export const parse = (pattern) => {
   for (let rowIdx = 0; rowIdx < parsedWorld.length; rowIdx++) {
     for (let colIdx = 0; colIdx < parsedWorld[rowIdx].length; colIdx++) {
       parsedWorld[rowIdx][colIdx] =
-        parsedWorld[rowIdx][colIdx] === "O" ? true : false;
+        parsedWorld[rowIdx][colIdx] === "O";
     }
   }
 

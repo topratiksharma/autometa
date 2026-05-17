@@ -23,7 +23,9 @@ export class PatternLibrary {
   }
 
   find(name) {
-    return this.#patterns.find((p) => p.name === name);
+    const entry = this.#patterns.find((p) => p.name === name);
+    if (!entry) throw new Error(`Unknown pattern: "${name}"`);
+    return entry;
   }
 
   populate(selectEl) {

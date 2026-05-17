@@ -30,8 +30,8 @@ export class HUD {
   }
 
   setDescription(text) {
-    document.getElementById("pattern-description").innerHTML =
-      `<span>${text}</span>`;
+    const el = document.getElementById("pattern-description");
+    el.replaceChildren(Object.assign(document.createElement("span"), { textContent: text }));
   }
 
   setCanvasRunning(running) {
