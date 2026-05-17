@@ -259,6 +259,30 @@ canvas {
   flex-shrink: 0;
 }
 
+.select-hint {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  background: rgba(10, 20, 26, 0.95);
+  border: 1px solid rgba(229, 120, 0, 0.45);
+  color: #E5A000;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.select-hint.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 select {
   appearance: none;
   -webkit-appearance: none;

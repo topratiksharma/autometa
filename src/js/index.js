@@ -17,7 +17,12 @@ const renderer = new Renderer("life-canvas", {
 const hud = new HUD();
 const sim = new Simulation(renderer, hud, { initialSpeed: 3 });
 
-library.populate(document.getElementById("availableRecords"));
+const selectEl = document.getElementById("availableRecords");
+library.populate(selectEl);
+
+// Auto-select first pattern and show its description immediately
+selectEl.selectedIndex = 0;
+hud.setDescription(library.find(selectEl.value).description);
 
 window.optionChange = (name) => {
   if (!name) return;
@@ -26,8 +31,18 @@ window.optionChange = (name) => {
 };
 
 window.toggleProcess = () => {
-  const name = document.getElementById("availableRecords").value;
-  if (!name) return;
+  const name = selectEl.value;
+  if (!name) {
+    const pill = document.querySelector(".control-pill");
+    const hint = document.getElementById("select-hint");
+    pill.classList.add("no-selection");
+    hint.classList.add("visible");
+    setTimeout(() => {
+      pill.classList.remove("no-selection");
+      hint.classList.remove("visible");
+    }, 2000);
+    return;
+  }
   if (!sim.isRunning && sim.generation === 0) {
     sim.load(parse(library.find(name).pattern));
   }

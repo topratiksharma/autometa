@@ -20,6 +20,7 @@ export class PatternLibrary {
   populate(selectEl) {
     this.#patterns.forEach((entry) => {
       const opt = document.createElement("option");
+      opt.value = entry.name;
       opt.text = entry.name;
       selectEl.add(opt);
     });
