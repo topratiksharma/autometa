@@ -7,11 +7,11 @@ import { Simulation } from "./simulation.js";
 const library = PatternLibrary.load();
 
 const renderer = new Renderer("life-canvas", {
-  width: 480,
-  height: 240,
+  width: 240,
+  height: 120,
   scale: 4,
-  topSpace: 100,
-  leftSpace: 220,
+  topSpace: 40,
+  leftSpace: 100,
 });
 
 const hud = new HUD();
