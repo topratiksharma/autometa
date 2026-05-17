@@ -1,87 +1,122 @@
 import { next, parse } from "../engine.js";
 
-//#region Global Variables
-let ctx;
+// ─── Constants ─────────────────────────────────────────────────
 const scale = 4;
 const worldWidth = 480;
 const worldHeight = 240;
+const topSpace = 100;
+const leftSpace = 220;
+const speedLevels = [500, 200, 100, 50, 16];
+
+// ─── State ─────────────────────────────────────────────────────
+let ctx;
 let selectedWorld;
 let timer;
-//#endregion
+let isRunning = false;
+let generation = 0;
+let currentSpeed = 3;
 
-//#region Initialize
-//Reading world data and saving it in global constant
+// ─── Boot ───────────────────────────────────────────────────────
 const worldData = await readFile();
-
 initializeSelectOptions();
+initializeCanvas();
 
-initalizeCanvas();
-
-/**
- * Initializes Select Box Options
- */
-async function initializeSelectOptions() {
-  const selectOption = document.getElementById("availableRecords");
-  worldData.forEach((eachOption) => {
-    const optionEl = document.createElement("option");
-    optionEl.text = eachOption.name;
-    optionEl.title = eachOption.description;
-    selectOption.add(optionEl);
+// ─── Init ───────────────────────────────────────────────────────
+function initializeSelectOptions() {
+  const selectEl = document.getElementById("availableRecords");
+  worldData.forEach((entry) => {
+    const opt = document.createElement("option");
+    opt.text = entry.name;
+    selectEl.add(opt);
   });
 }
 
-/**
- * Initialize Canvas with width and height
- */
-function initalizeCanvas() {
-  const canvas = document.querySelector("canvas");
+function initializeCanvas() {
+  const canvas = document.getElementById("life-canvas");
   canvas.width = worldWidth * scale;
   canvas.height = worldHeight * scale;
   ctx = canvas.getContext("2d");
+  clearCanvas();
 }
-//#endregion
 
-/**
- * Renders the new world points on the canvas
- * @param {worldObject} world | Provide the world info
- * @param {string} topSpace | Top margin
- * @param {number} leftSpace | Left margin
- */
-function render(world, topSpace, leftSpace) {
-  ctx.fillStyle = "#202020";
+function clearCanvas() {
+  ctx.fillStyle = "#050A0E";
   ctx.fillRect(0, 0, worldWidth * scale, worldHeight * scale);
-  ctx.fillStyle = "green";
+}
+
+// ─── Render ─────────────────────────────────────────────────────
+function render(world) {
+  clearCanvas();
+
+  let aliveCount = 0;
+
+  ctx.shadowBlur = 4;
+  ctx.shadowColor = "#00FF9D";
+  ctx.fillStyle = "#00FF9D";
+
   world.forEach((rows, y) => {
-    rows.forEach(
-      (alive, x) =>
-        alive &&
+    rows.forEach((alive, x) => {
+      if (alive) {
+        aliveCount++;
         ctx.fillRect(
           (x + leftSpace) * scale,
           (y + topSpace) * scale,
           scale - 1,
           scale - 1
-        )
-    );
-  });
-}
-
-/**
- * Reads the data from the json file
- * @returns json file data
- */
-async function readFile() {
-  return new Promise((resolve, reject) => {
-    readJsonFile("./src/lexicon.json", (fileDataAsString) => {
-      resolve(JSON.parse(fileDataAsString));
+        );
+      }
     });
   });
+
+  ctx.shadowBlur = 0;
+
+  document.getElementById("alive-counter").textContent =
+    String(aliveCount).padStart(5, "0");
 }
 
-/**
- * Does AJAX for fetching the file info
- * @param {string} file File path
- * @param {function} callback Callback functions
- */
+// ─── HUD updates ────────────────────────────────────────────────
+function setGeneration(n) {
+  generation = n;
+  document.getElementById("gen-counter").textContent =
+    String(generation).padStart(5, "0");
+}
+
+function setStatus(label, className = "") {
+  const badge = document.getElementById("status-badge");
+  badge.textContent = label;
+  badge.className = "stat-value status-badge" + (className ? " " + className : "");
+}
+
+function setButtonState(icon, label, isPaused) {
+  const btn = document.getElementById("main-btn");
+  btn.querySelector(".btn-icon").textContent = icon;
+  btn.querySelector(".btn-label").textContent = label;
+  btn.classList.toggle("paused", isPaused);
+}
+
+function updateSpeedPips() {
+  document.querySelectorAll(".pip").forEach((pip, i) => {
+    pip.classList.toggle("active", i < currentSpeed);
+  });
+}
+
+// ─── Simulation loop ────────────────────────────────────────────
+function startLoop() {
+  clearInterval(timer);
+  timer = setInterval(() => {
+    selectedWorld = next(selectedWorld);
+    setGeneration(generation + 1);
+    render(selectedWorld);
+  }, speedLevels[currentSpeed - 1]);
+}
+
+// ─── File loading ────────────────────────────────────────────────
+async function readFile() {
+  return new Promise((resolve) => {
+    readJsonFile("./src/lexicon.json", (text) => resolve(JSON.parse(text)));
+  });
+}
+
 function readJsonFile(file, callback) {
   const rawFile = new XMLHttpRequest();
   rawFile.overrideMimeType("application/json");
@@ -94,44 +129,55 @@ function readJsonFile(file, callback) {
   rawFile.send(null);
 }
 
-//#region Events
-
-/**
- * Add description of selected world into label
- * @param {string} selectedOption Option Selected by user
- * @returns {undefined}
- */
+// ─── Event handlers (window-scoped for HTML onXxx) ───────────────
 window.optionChange = (selectedOption) => {
   if (!selectedOption) return;
-  const description = worldData.find(
-    (ss) => ss.name === selectedOption
-  ).description;
-  document.getElementById("selectedValue").innerText = description;
-};
 
-/**
- * Starts the regeneration process of the selected world
- */
-window.startProcess = () => {
+  // Stop any running simulation
   clearInterval(timer);
-  const selectedOption = document.getElementById("availableRecords").value;
-  const topSpace = 100;
-  const leftSpace = 220;
-  if (!selectedOption) return;
-  selectedWorld = getSelectedWorld(selectedOption);
-  render(selectedWorld, topSpace, leftSpace);
-  timer = setInterval(() => {
-    selectedWorld = next(selectedWorld);
-    render(selectedWorld, topSpace, leftSpace);
-  }, 100);
+  isRunning = false;
+  setGeneration(0);
+  setStatus("IDLE");
+  setButtonState("▶", "START", false);
+  document.getElementById("canvas-container").classList.remove("running");
+  clearCanvas();
+
+  const entry = worldData.find((s) => s.name === selectedOption);
+  const descEl = document.getElementById("pattern-description");
+  descEl.innerHTML = `<span>${entry.description}</span>`;
 };
 
-/**
- * fetchs the selected world
- * @param {string} selectedOption Selected Option
- */
-function getSelectedWorld(selectedOption) {
-  return parse(worldData.find((ss) => ss.name === selectedOption).pattern);
-}
+window.toggleProcess = () => {
+  const selectedOption = document.getElementById("availableRecords").value;
+  if (!selectedOption) return;
 
-//#endregion
+  if (!isRunning) {
+    // Fresh start (or resume from paused)
+    if (generation === 0) {
+      selectedWorld = parse(
+        worldData.find((s) => s.name === selectedOption).pattern
+      );
+      render(selectedWorld);
+    }
+    isRunning = true;
+    setButtonState("⏸", "PAUSE", false);
+    setStatus("RUNNING", "running");
+    document.getElementById("canvas-container").classList.add("running");
+    startLoop();
+  } else {
+    // Pause
+    clearInterval(timer);
+    isRunning = false;
+    setButtonState("▶", "RESUME", true);
+    setStatus("PAUSED", "paused");
+    document.getElementById("canvas-container").classList.remove("running");
+  }
+};
+
+window.changeSpeed = (delta) => {
+  const next_ = Math.max(1, Math.min(5, currentSpeed + delta));
+  if (next_ === currentSpeed) return;
+  currentSpeed = next_;
+  updateSpeedPips();
+  if (isRunning) startLoop();
+};

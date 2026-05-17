@@ -1,27 +1,93 @@
-<html>
-  <head>
-    <title>Game of life</title>
-    <link rel="stylesheet" href="./src/style/index.css" />
-  </head>
-  <body>
-    <div class="container">
-      <div>
-        <canvas></canvas>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autometa — Conway's Game of Life</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./src/style/index.css">
+</head>
+<body>
+
+  <div class="noise-overlay"></div>
+  <div class="scanlines"></div>
+
+  <div class="canvas-container" id="canvas-container">
+    <canvas id="life-canvas"></canvas>
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+  </div>
+
+  <header class="hud-header">
+    <div class="brand">
+      <span class="brand-main">AUTOMETA</span>
+      <span class="brand-sub">Conway's Game of Life · 1970</span>
+    </div>
+    <div class="stats">
+      <div class="stat-item">
+        <span class="stat-label">GENERATION</span>
+        <span class="stat-value" id="gen-counter">00000</span>
       </div>
-      <div class="footer">
-        <select
-          name="availableRecords"
-          id="availableRecords"
-          onchange="optionChange(this.value)"
-        >
-          <option value="">-Select option-</option>
-        </select>
-        <label id="selectedValue"></label>
-        <button type="button" class="start-button" onclick="startProcess()">
-          Start
-        </button>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">ALIVE CELLS</span>
+        <span class="stat-value" id="alive-counter">00000</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">STATUS</span>
+        <span class="stat-value status-badge" id="status-badge">IDLE</span>
       </div>
     </div>
-  </body>
+  </header>
+
+  <footer class="hud-footer">
+    <div class="control-pill">
+
+      <div class="select-wrapper">
+        <select id="availableRecords" onchange="optionChange(this.value)">
+          <option value="">SELECT PATTERN</option>
+        </select>
+        <span class="select-arrow">◆</span>
+      </div>
+
+      <div class="pill-divider"></div>
+
+      <div class="description-display" id="pattern-description">
+        <span class="desc-placeholder">Choose a pattern to begin observation</span>
+      </div>
+
+      <div class="pill-divider"></div>
+
+      <div class="speed-control">
+        <span class="stat-label">SPEED</span>
+        <div class="speed-pips" id="speed-pips">
+          <span class="pip active"></span>
+          <span class="pip active"></span>
+          <span class="pip active"></span>
+          <span class="pip"></span>
+          <span class="pip"></span>
+        </div>
+      </div>
+
+      <div class="pill-divider"></div>
+
+      <div class="action-group">
+        <button class="speed-btn" onclick="changeSpeed(-1)" title="Decrease speed">–</button>
+        <button class="action-btn" id="main-btn" onclick="toggleProcess()">
+          <span class="btn-icon">▶</span>
+          <span class="btn-label">START</span>
+        </button>
+        <button class="speed-btn" onclick="changeSpeed(1)" title="Increase speed">+</button>
+      </div>
+
+    </div>
+  </footer>
+
   <script type="module" src="./src/js/index.js"></script>
+</body>
 </html>
