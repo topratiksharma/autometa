@@ -4,14 +4,38 @@ import { Renderer } from "./renderer.js";
 import { HUD } from "./hud.js";
 import { Simulation } from "./simulation.js";
 
+const WORLD_WIDTH  = 240;
+const WORLD_HEIGHT = 120;
+
+// Places a parsed pattern at the centre of a full WORLD_WIDTH×WORLD_HEIGHT grid.
+function embedPattern(pattern) {
+  const ph = pattern.length;
+  const pw = Math.max(...pattern.map((r) => r.length));
+  const ox = Math.floor((WORLD_WIDTH  - pw) / 2);
+  const oy = Math.floor((WORLD_HEIGHT - ph) / 2);
+
+  const world = Array.from({ length: WORLD_HEIGHT }, () =>
+    Array(WORLD_WIDTH).fill(false)
+  );
+  pattern.forEach((row, y) => {
+    row.forEach((cell, x) => {
+      const wx = ox + x;
+      const wy = oy + y;
+      if (wx >= 0 && wx < WORLD_WIDTH && wy >= 0 && wy < WORLD_HEIGHT) {
+        world[wy][wx] = cell;
+      }
+    });
+  });
+  return world;
+}
+
 const library = PatternLibrary.load();
 
+// topSpace/leftSpace are 0 — the pattern is already positioned inside the world.
 const renderer = new Renderer("life-canvas", {
-  width: 240,
-  height: 120,
-  scale: 4,
-  topSpace: 40,
-  leftSpace: 100,
+  width:  WORLD_WIDTH,
+  height: WORLD_HEIGHT,
+  scale:  4,
 });
 
 const hud = new HUD();
@@ -44,7 +68,7 @@ window.toggleProcess = () => {
     return;
   }
   if (!sim.isRunning && sim.generation === 0) {
-    sim.load(parse(library.find(name).pattern));
+    sim.load(embedPattern(parse(library.find(name).pattern)));
   }
   sim.toggle();
 };

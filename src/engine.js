@@ -38,21 +38,16 @@ function census(x, y, rows, columns, data) {
  * @returns {boolean}
  */
 function getNeighbors(x, y, rows, columns, data) {
-  // Row 0 is at the top of the canvas; y increases downward.
-  let s = y != rows - 1;    // can look south (y + 1 exists)
-  let w = x != 0;            // can look west  (x - 1 exists)
-  let n = y != 0;            // can look north (y - 1 exists)
-  let e = x != columns - 1; // can look east  (x + 1 exists)
-  let count = 0;
-  if (s && isLive(x, y + 1, data)) count++;
-  if (s && w && isLive(x - 1, y + 1, data)) count++;
-  if (w && isLive(x - 1, y, data)) count++;
-  if (n && w && isLive(x - 1, y - 1, data)) count++;
-  if (n && isLive(x, y - 1, data)) count++;
-  if (n && e && isLive(x + 1, y - 1, data)) count++;
-  if (e && isLive(x + 1, y, data)) count++;
-  if (s && e && isLive(x + 1, y + 1, data)) count++;
-  return count;
+  const l = (x - 1 + columns) % columns;
+  const r = (x + 1) % columns;
+  const u = (y - 1 + rows) % rows;
+  const d = (y + 1) % rows;
+  return (
+    isLive(x, u, data) + isLive(x, d, data) +
+    isLive(l, y, data) + isLive(r, y, data) +
+    isLive(l, u, data) + isLive(r, u, data) +
+    isLive(l, d, data) + isLive(r, d, data)
+  );
 }
 
 /**
